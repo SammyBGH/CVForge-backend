@@ -22,7 +22,7 @@ app.set('trust proxy', 1);
 // Middleware
 const allowedOrigins = [
   'http://localhost:5173', // Local development
-  'https://cvforge.vercel.app', // Your Vercel frontend
+  'https://cvforge-io.vercel.app', // Your Vercel frontend
   'https://cvforge-back.onrender.com' // Your Render backend
 ];
 
