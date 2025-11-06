@@ -21,9 +21,10 @@ app.set('trust proxy', 1);
 
 // Middleware
 const allowedOrigins = [
-  'http://localhost:5173', // Local development
-  'https://cvforge-io.vercel.app', // Your Vercel frontend
-  'https://cvforge-back.onrender.com' // Your Render backend
+  'http://localhost:3000',  // Local frontend development
+  'http://localhost:5173',  // Vite default port
+  'https://cvforge-io.vercel.app', // Production frontend
+  'https://cvforge-back.onrender.com' // Production backend
 ];
 
 // Force HTTPS in production
@@ -35,23 +36,30 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-        return callback(new Error(msg), false);
-      }
+// Enable CORS with specific options
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow all localhost origins in development
+    if (process.env.NODE_ENV === 'development' && 
+        (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
       return callback(null, true);
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-  })
-);
+    }
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      console.warn(`Blocked request from origin: ${origin}`);
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
+}));
 
 app.use(express.json());
 
